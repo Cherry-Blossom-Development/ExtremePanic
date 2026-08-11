@@ -6,3 +6,17 @@ node_modules/
 */node_modules/*
 .env
 .env.*
+!.env.example
+
+# next.js
+/.next/
+/out/
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# vercel (unused here, but harmless to ignore if it ever appears)
+.vercel
+
+# logs
+npm-debug.log*

@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: extremepanic-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: extremepanic
+      POSTGRES_PASSWORD: extremepanic
+      POSTGRES_DB: extremepanic
+    ports:
+      - "5433:5432"
+    volumes:
+      - extremepanic_pgdata:/var/lib/postgresql/data
+
+volumes:
+  extremepanic_pgdata:
