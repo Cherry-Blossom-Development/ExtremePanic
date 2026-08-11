@@ -9,7 +9,11 @@
     "lint": "eslint",
     "db:up": "docker compose up -d",
     "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
     "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -26,6 +30,7 @@
     "eslint-config-next": "16.3.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5"
   }
 }

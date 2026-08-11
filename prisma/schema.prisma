@@ -12,3 +12,19 @@ model Subscriber {
   email     String   @unique
   createdAt DateTime @default(now())
 }
+
+// One row = one reviewed product. The business model doesn't separate
+// "products" from "reviews" (buy one unit, review that unit, list it) so
+// this stays a single table rather than a Product/Review split.
+model Review {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  summary   String
+  body      String
+  rating    Int
+  price     Decimal  @db.Decimal(10, 2)
+  imageUrl  String?
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

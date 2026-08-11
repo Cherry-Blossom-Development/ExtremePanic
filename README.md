@@ -32,23 +32,29 @@ cp .env.example .env      # local Postgres connection string
 npm install
 npm run db:up              # starts Postgres in Docker (port 5433)
 npm run db:migrate         # applies the Prisma schema
+npm run db:seed            # adds one placeholder review so pages aren't empty
 npm run dev                # http://localhost:3000
 ```
 
 `npm run db:studio` opens Prisma Studio if you want to browse the database
-directly.
+directly. Any Postgres client (DBeaver, etc.) can also connect directly using
+the credentials in `.env.example`.
 
 ### What's here so far
 
-- A landing page (`src/app/page.tsx`) with an email capture form.
+- A landing page (`src/app/page.tsx`) with an email capture form and a
+  "latest reviews" teaser.
 - `POST /api/subscribe` (`src/app/api/subscribe/route.ts`), which validates
   the address and writes it to the `Subscriber` table.
-- One Postgres table (`Subscriber`) via Prisma — the first slice of "some
-  kind of database," expanded as later phases (products, reviews, orders)
-  need it.
+- `/reviews` and `/reviews/[slug]` — list and detail pages reading from a
+  `Review` table (one row = one reviewed product; the business model doesn't
+  separate "product" from "review," so this stays one table rather than two).
+- Two Postgres tables (`Subscriber`, `Review`) via Prisma, expanded as later
+  phases (orders, etc.) need it.
 
 ### Not yet built
 
-Payments (Square/PayPal), the review/product catalog and CMS, dropship
-supplier integration, analytics, and deployment are all still ahead — see
-`docs/x-panic-technical-plan-v2.docx` for the phased plan.
+Payments (Square/PayPal), a way to publish reviews other than editing the
+database directly, dropship supplier integration, analytics, and deployment
+are all still ahead — see `docs/x-panic-technical-plan-v2.docx` for the
+phased plan.
