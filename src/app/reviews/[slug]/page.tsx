@@ -16,6 +16,14 @@ export default async function ReviewPage({
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-16">
+      {review.imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={review.imageUrl}
+          alt={review.title}
+          className="w-full rounded-xl object-cover"
+        />
+      )}
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
           {review.title}

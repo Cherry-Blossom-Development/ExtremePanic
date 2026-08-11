@@ -28,12 +28,12 @@ the rest of the AWS account.
 Requires Node.js and Docker.
 
 ```bash
-cp .env.example .env      # local Postgres connection string
+cp .env.example .env      # local Postgres connection string + admin password
 npm install
-npm run db:up              # starts Postgres in Docker (port 5433)
-npm run db:migrate         # applies the Prisma schema
-npm run db:seed            # adds one placeholder review so pages aren't empty
-npm run dev                # http://localhost:3000
+npm run db:up               # starts Postgres in Docker (port 5433)
+npm run db:migrate          # applies the Prisma schema
+npm run db:seed             # adds one placeholder review so pages aren't empty
+npm run dev                 # http://localhost:3000
 ```
 
 `npm run db:studio` opens Prisma Studio if you want to browse the database
@@ -46,15 +46,19 @@ the credentials in `.env.example`.
   "latest reviews" teaser.
 - `POST /api/subscribe` (`src/app/api/subscribe/route.ts`), which validates
   the address and writes it to the `Subscriber` table.
-- `/reviews` and `/reviews/[slug]` — list and detail pages reading from a
-  `Review` table (one row = one reviewed product; the business model doesn't
-  separate "product" from "review," so this stays one table rather than two).
-- Two Postgres tables (`Subscriber`, `Review`) via Prisma, expanded as later
-  phases (orders, etc.) need it.
+- `/reviews` and `/reviews/[slug]` — public list and detail pages reading
+  from a `Review` table (one row = one reviewed product; the business model
+  doesn't separate "product" from "review," so this stays one table rather
+  than two).
+- `/admin` — a password-protected area (single shared password, set via
+  `ADMIN_PASSWORD` in `.env`; local default is `changeme`) for creating,
+  editing, publishing/unpublishing, and deleting reviews without touching
+  the database directly.
+- Three Postgres tables (`Subscriber`, `Review`, plus Prisma's migration
+  tracking) via Prisma, expanded as later phases (orders, etc.) need it.
 
 ### Not yet built
 
-Payments (Square/PayPal), a way to publish reviews other than editing the
-database directly, dropship supplier integration, analytics, and deployment
-are all still ahead — see `docs/x-panic-technical-plan-v2.docx` for the
-phased plan.
+Payments (Square/PayPal), dropship supplier integration, analytics, and
+deployment are all still ahead — see `docs/x-panic-technical-plan-v2.docx`
+for the phased plan.
