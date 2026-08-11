@@ -28,7 +28,7 @@ the rest of the AWS account.
 Requires Node.js and Docker.
 
 ```bash
-cp .env.example .env      # local Postgres connection string + admin password
+cp .env.example .env      # local Postgres connection string + admin password + Square sandbox keys
 npm install
 npm run db:up               # starts Postgres in Docker (port 5433)
 npm run db:migrate          # applies the Prisma schema
@@ -54,11 +54,20 @@ the credentials in `.env.example`.
   `ADMIN_PASSWORD` in `.env`; local default is `changeme`) for creating,
   editing, publishing/unpublishing, and deleting reviews without touching
   the database directly.
-- Three Postgres tables (`Subscriber`, `Review`, plus Prisma's migration
-  tracking) via Prisma, expanded as later phases (orders, etc.) need it.
+- A "Buy" button on each review's detail page that creates an `Order` row
+  and redirects to a Square-hosted checkout page (`src/lib/square.ts`,
+  `src/app/reviews/[slug]/actions.ts`), per the Checkout API path in
+  `docs/x-panic-technical-plan-v2.docx` §2.2. Requires `SQUARE_ACCESS_TOKEN`
+  / `SQUARE_LOCATION_ID` in `.env` (sandbox app credentials from the
+  [Square Developer Dashboard](https://developer.squareup.com/apps)) — the
+  button 500s without them. Orders stay `PENDING` after checkout; there's no
+  webhook yet to mark them `PAID` (needs a public HTTPS URL, so that's a
+  follow-up once the site is deployed).
+- Four Postgres tables (`Subscriber`, `Review`, `Order`, plus Prisma's
+  migration tracking) via Prisma.
 
 ### Not yet built
 
-Payments (Square/PayPal), dropship supplier integration, analytics, and
-deployment are all still ahead — see `docs/x-panic-technical-plan-v2.docx`
-for the phased plan.
+PayPal (Square's backup payment rail), the Square payment-confirmation
+webhook, dropship supplier integration, analytics, and deployment are all
+still ahead — see `docs/x-panic-technical-plan-v2.docx` for the phased plan.

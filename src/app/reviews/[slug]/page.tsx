@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { stars } from "@/lib/stars";
+import { checkout } from "./actions";
 
 export default async function ReviewPage({
   params,
@@ -37,6 +38,15 @@ export default async function ReviewPage({
           </span>
         </div>
       </div>
+      <form action={checkout}>
+        <input type="hidden" name="reviewId" defaultValue={review.id} />
+        <button
+          type="submit"
+          className="flex h-12 w-fit items-center justify-center rounded-full bg-foreground px-6 text-base font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
+        >
+          Buy — ${Number(review.price).toFixed(2)}
+        </button>
+      </form>
       <p className="text-lg leading-8 text-zinc-600 dark:text-zinc-400">{review.body}</p>
     </main>
   );

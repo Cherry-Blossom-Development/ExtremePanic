@@ -27,4 +27,26 @@ model Review {
   imageUrl  String?
   published Boolean  @default(false)
   createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELED
+}
+
+// Created when a buyer starts checkout (via Square's hosted Payment Link).
+// Stays PENDING after redirect until a Square webhook confirms payment --
+// no webhook yet since that needs a public HTTPS URL (see AGENTS/plan v2 2.4).
+model Order {
+  id                  String      @id @default(cuid())
+  reviewId            String
+  review              Review      @relation(fields: [reviewId], references: [id])
+  amount              Decimal     @db.Decimal(10, 2)
+  status              OrderStatus @default(PENDING)
+  squareOrderId       String?     @unique
+  squarePaymentLinkId String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 }
