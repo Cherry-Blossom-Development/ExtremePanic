@@ -1,0 +1,34 @@
+# Runs on the shared Prosaurus/Breakroom EC2 box (44.225.148.34), alongside
+# the Breakroom backend container, host MariaDB, host Redis, and host nginx.
+# Postgres here is ExtremePanic's own — isolated from Breakroom's MariaDB.
+#
+# Deploy: scp this file + a populated .env to ~/extremepanic/ on the box,
+# then `docker compose -f docker-compose.ec2.yml --env-file .env up -d`.
+# See CLAUDE.md's "EC2 Production Deployment" section for the full flow.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: extremepanic-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: extremepanic
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: extremepanic
+    volumes:
+      - extremepanic_pgdata:/var/lib/postgresql/data
+    # No published port — only reachable from the web container on the
+    # compose network, unlike Breakroom's MariaDB which is host-exposed.
+
+  web:
+    image: dallascaley/extremepanic-web:latest
+    container_name: extremepanic-web
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:3001:3000"
+
+volumes:
+  extremepanic_pgdata:

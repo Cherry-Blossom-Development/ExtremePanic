@@ -73,3 +73,80 @@ npm run build
 `docs/` holds planning docs (`.docx`, not meant to be hand-edited by
 Claude — they're the owner's source-of-truth plan) plus `STATUS.md`
 (the living build log, which Claude should keep current).
+
+## EC2 Production Deployment
+
+Live at https://extremepanic.com, deployed 2026-08-12 to the shared
+Prosaurus/Breakroom EC2 box (44.225.148.34) — see the parent repo's
+`Breakroom/CLAUDE.md` for that box's general layout. Runs as its own
+Docker containers, isolated from Breakroom's MariaDB:
+
+- `extremepanic-web` — this app, built from the repo's `Dockerfile`
+  (Next.js `output: "standalone"`), image `dallascaley/extremepanic-web`
+  on Docker Hub, bound to `127.0.0.1:3001` (Breakroom's backend already
+  has `:3000`).
+- `extremepanic-postgres` — `postgres:16-alpine`, own named volume, not
+  published to the host (only reachable from `extremepanic-web` over the
+  compose network) — unlike Breakroom's MariaDB, which is host-exposed.
+
+Both are defined in `docker-compose.ec2.yml` (committed — no secrets in
+it) at `~/extremepanic/` on the box, alongside a non-committed `.env`
+(gitignored locally as `.env.production`, scp'd to the box as `.env`).
+Host nginx (`/etc/nginx/conf.d/extremepanic.com.conf`, not in this repo)
+terminates TLS (Let's Encrypt, auto-renewing via certbot's systemd timer)
+and reverse-proxies to `127.0.0.1:3001`.
+
+**The box is memory- and disk-constrained** (~1.9GB RAM, ~2GB disk free
+at time of writing, no swap) and shared with live Breakroom — always
+build images locally and push to Docker Hub, never build on the box
+itself, and keep the runner image lean (see the Dockerfile's comments on
+why it does a targeted `npm install --no-save prisma@<version>` instead
+of copying the full project `node_modules` — the latter balloons the
+image with `typescript`/`eslint`/etc. that the running app doesn't need).
+
+### Redeploy after an app change
+
+```bash
+# From this repo, on the dev machine (Docker Desktop must be running):
+docker build -t dallascaley/extremepanic-web:latest .
+docker push dallascaley/extremepanic-web:latest
+
+# On the EC2 box:
+ssh -i ~/.ssh/Hostgator-Key-1.pem ec2-user@44.225.148.34
+cd ~/extremepanic
+docker compose -f docker-compose.ec2.yml --env-file .env pull web
+docker compose -f docker-compose.ec2.yml --env-file .env up -d --force-recreate web
+docker image prune -f   # reclaim space from the superseded image layers
+```
+
+If `prisma/schema.prisma` or its migrations changed, also run inside the
+container after redeploying:
+
+```bash
+docker compose -f docker-compose.ec2.yml --env-file .env exec web node_modules/.bin/prisma migrate deploy
+```
+
+(Use the full `node_modules/.bin/prisma` path, not `npx prisma` — the
+container has no network access assumption baked in and this avoids an
+npx resolution surprise.)
+
+If `docker-compose.ec2.yml` itself changed, `scp` it to
+`~/extremepanic/docker-compose.ec2.yml` on the box before the `pull`/`up`
+step above.
+
+### Useful commands (on the box)
+
+```bash
+docker logs extremepanic-web -f
+docker compose -f docker-compose.ec2.yml --env-file .env restart
+docker compose -f docker-compose.ec2.yml --env-file .env stop   # stop, keep containers/volumes
+sudo nginx -t && sudo systemctl reload nginx   # after editing the nginx conf
+```
+
+### Not yet configured
+
+- **Square** — the box's `.env` has no `SQUARE_ACCESS_TOKEN` /
+  `SQUARE_LOCATION_ID`, so checkout 500s in production, matching local
+  dev. Add sandbox keys there (not to this repo) to enable it.
+- **Square payment-confirmation webhook** — no longer blocked on
+  deployment (the site has a public HTTPS URL now), but still not built.
