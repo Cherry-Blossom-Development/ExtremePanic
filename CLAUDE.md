@@ -57,15 +57,20 @@ else works fine without them.
 - **Square, not Stripe** — Stripe was explicitly removed from the plan
   (vendor relationship severed). Never suggest Stripe. Square is primary,
   PayPal is the planned-but-unbuilt backup rail.
-- **Review images upload to S3** (`src/lib/s3.ts`, wired into
-  `src/app/admin/(dashboard)/reviews/actions.ts`), mirroring Breakroom's
-  approach (multer-equivalent → `PutObjectCommand` → public-read bucket)
-  but with its own bucket (`extremepanic-uploads`, us-west-2) and its own
-  scoped IAM user (`extremepanic-uploads`, access limited to that bucket's
+- **Review images and videos upload to S3** (`src/lib/s3.ts`, wired into
+  `src/app/admin/(dashboard)/reviews/actions.ts` via the generic
+  `resolveMediaUrl`/`uploadReviewMedia`/`deleteOldMediaIfOurs` helpers so
+  both fields share one code path), mirroring Breakroom's approach
+  (multer-equivalent → `PutObjectCommand` → public-read bucket) but with
+  its own bucket (`extremepanic-uploads`, us-west-2) and its own scoped
+  IAM user (`extremepanic-uploads`, access limited to that bucket's
   objects) — **never** reuse Breakroom's `prosaurus-breakroom-uploads`
-  bucket or its credentials for anything in this repo. The admin review
-  form's file input is optional; a manually-pasted `imageUrl` still works
-  as a fallback (and is all that's used if `AWS_ACCESS_KEY_ID` isn't set).
+  bucket or its credentials for anything in this repo. Both admin form
+  file inputs are optional; a manually-pasted `imageUrl`/`videoUrl` still
+  works as a fallback (and is all that's used if `AWS_ACCESS_KEY_ID` isn't
+  set). Video is capped at 50MB (JPEG/PNG/GIF/WebP images at 5MB,
+  MP4/WebM/MOV video) — worth revisiting if the box's memory gets tight,
+  since uploads are buffered in memory before the `PutObjectCommand`.
 
 ## Conventions
 

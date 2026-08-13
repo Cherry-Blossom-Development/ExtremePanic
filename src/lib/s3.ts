@@ -36,7 +36,9 @@ export function keyFromS3Url(url: string): string | null {
   return url.startsWith(prefix) ? url.slice(prefix.length) : null;
 }
 
-export async function uploadReviewImage({
+// Generic putter used for both review images and review videos -- nothing
+// about it is media-type-specific beyond the contentType passed in.
+export async function uploadReviewMedia({
   buffer,
   key,
   contentType,

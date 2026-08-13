@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { isAdminAuthed } from "@/lib/adminAuth";
-import { uploadReviewImage, deleteS3Object, keyFromS3Url } from "@/lib/s3";
+import { uploadReviewMedia, deleteS3Object, keyFromS3Url } from "@/lib/s3";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
 const ALLOWED_IMAGE_TYPES: Record<string, string> = {
@@ -12,6 +12,13 @@ const ALLOWED_IMAGE_TYPES: Record<string, string> = {
   "image/png": ".png",
   "image/gif": ".gif",
   "image/webp": ".webp",
+};
+
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024; // 50MB
+const ALLOWED_VIDEO_TYPES: Record<string, string> = {
+  "video/mp4": ".mp4",
+  "video/webm": ".webm",
+  "video/quicktime": ".mov",
 };
 
 function slugify(value: string) {
@@ -41,38 +48,54 @@ function isUploadedFile(value: FormDataEntryValue | null): value is File {
   );
 }
 
-// Uploads the file from the "imageFile" field if one was chosen, falling
-// back to the manually-typed "imageUrl" field otherwise.
-async function resolveImageUrl(formData: FormData, slug: string) {
-  const file = formData.get("imageFile");
-  const manualUrl = String(formData.get("imageUrl") ?? "").trim() || null;
+// Uploads the file from `fileField` if one was chosen, falling back to the
+// manually-typed `urlField` otherwise. Shared by the image and video inputs.
+async function resolveMediaUrl(
+  formData: FormData,
+  slug: string,
+  {
+    fileField,
+    urlField,
+    allowedTypes,
+    maxBytes,
+    label,
+  }: {
+    fileField: string;
+    urlField: string;
+    allowedTypes: Record<string, string>;
+    maxBytes: number;
+    label: string;
+  },
+) {
+  const file = formData.get(fileField);
+  const manualUrl = String(formData.get(urlField) ?? "").trim() || null;
 
   if (!isUploadedFile(file) || file.size === 0) {
     return manualUrl;
   }
 
-  const ext = ALLOWED_IMAGE_TYPES[file.type];
+  const ext = allowedTypes[file.type];
   if (!ext) {
-    throw new Error("Image must be a JPEG, PNG, GIF, or WebP file.");
+    throw new Error(`${label} type is not supported.`);
   }
-  if (file.size > MAX_IMAGE_BYTES) {
-    throw new Error("Image must be 5MB or smaller.");
+  if (file.size > maxBytes) {
+    throw new Error(`${label} must be ${Math.floor(maxBytes / (1024 * 1024))}MB or smaller.`);
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const key = `reviews/${slug}-${Date.now()}${ext}`;
-  return uploadReviewImage({ buffer, key, contentType: file.type });
+  return uploadReviewMedia({ buffer, key, contentType: file.type });
 }
 
 // Best-effort cleanup -- never blocks the review write on an S3 hiccup.
-async function deleteOldImageIfOurs(oldImageUrl: string | null, newImageUrl: string | null) {
-  if (!oldImageUrl || oldImageUrl === newImageUrl) return;
-  const key = keyFromS3Url(oldImageUrl);
+async function deleteOldMediaIfOurs(oldUrl: string | null, newUrl: string | null) {
+  if (!oldUrl || oldUrl === newUrl) return;
+  const key = keyFromS3Url(oldUrl);
   if (!key) return;
   try {
     await deleteS3Object(key);
   } catch (err) {
-    console.error("Failed to delete old review image from S3:", err);
+    console.error("Failed to delete old review media from S3:", err);
   }
 }
 
@@ -96,9 +119,22 @@ async function readReviewFields(formData: FormData) {
     throw new Error("Price must be zero or greater.");
   }
 
-  const imageUrl = await resolveImageUrl(formData, slug);
+  const imageUrl = await resolveMediaUrl(formData, slug, {
+    fileField: "imageFile",
+    urlField: "imageUrl",
+    allowedTypes: ALLOWED_IMAGE_TYPES,
+    maxBytes: MAX_IMAGE_BYTES,
+    label: "Image",
+  });
+  const videoUrl = await resolveMediaUrl(formData, slug, {
+    fileField: "videoFile",
+    urlField: "videoUrl",
+    allowedTypes: ALLOWED_VIDEO_TYPES,
+    maxBytes: MAX_VIDEO_BYTES,
+    label: "Video",
+  });
 
-  return { title, slug, summary, body, rating, price, imageUrl, published };
+  return { title, slug, summary, body, rating, price, imageUrl, videoUrl, published };
 }
 
 function revalidateReviewPaths() {
@@ -122,7 +158,8 @@ export async function updateReview(formData: FormData) {
   const existing = await prisma.review.findUnique({ where: { id } });
   const data = await readReviewFields(formData);
   await prisma.review.update({ where: { id }, data });
-  await deleteOldImageIfOurs(existing?.imageUrl ?? null, data.imageUrl);
+  await deleteOldMediaIfOurs(existing?.imageUrl ?? null, data.imageUrl);
+  await deleteOldMediaIfOurs(existing?.videoUrl ?? null, data.videoUrl);
   revalidateReviewPaths();
   redirect("/admin/reviews");
 }
@@ -133,7 +170,8 @@ export async function deleteReview(formData: FormData) {
   if (!id) throw new Error("Missing review id.");
   const existing = await prisma.review.findUnique({ where: { id } });
   await prisma.review.delete({ where: { id } });
-  await deleteOldImageIfOurs(existing?.imageUrl ?? null, null);
+  await deleteOldMediaIfOurs(existing?.imageUrl ?? null, null);
+  await deleteOldMediaIfOurs(existing?.videoUrl ?? null, null);
   revalidateReviewPaths();
   redirect("/admin/reviews");
 }

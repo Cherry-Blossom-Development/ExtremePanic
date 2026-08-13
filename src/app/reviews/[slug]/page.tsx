@@ -58,6 +58,14 @@ export default async function ReviewPage({
             </p>
           ))}
       </div>
+      {review.videoUrl && (
+        // eslint-disable-next-line jsx-a11y/media-has-caption
+        <video
+          src={review.videoUrl}
+          controls
+          className="w-full rounded-xl"
+        />
+      )}
     </main>
   );
 }

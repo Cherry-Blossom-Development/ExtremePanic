@@ -25,6 +25,7 @@ model Review {
   rating    Int
   price     Decimal  @db.Decimal(10, 2)
   imageUrl  String?
+  videoUrl  String?
   published Boolean  @default(false)
   createdAt DateTime @default(now())
   orders    Order[]

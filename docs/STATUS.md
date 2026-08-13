@@ -55,11 +55,15 @@ chosen over Shopify, per the plan's default recommendation.
   mode (no real charges) since sandbox keys haven't been supplied yet —
   the Buy button 500s until `SQUARE_ACCESS_TOKEN` / `SQUARE_LOCATION_ID`
   are added to the box's `.env`.
-- **Review image uploads** — the admin review form uploads directly to S3
-  (`src/lib/s3.ts`), mirroring Breakroom's approach but with its own
-  bucket (`extremepanic-uploads`, us-west-2) and its own scoped IAM user —
-  fully separate from Breakroom's uploads bucket/credentials. A manually
-  pasted image URL still works as a fallback.
+- **Review image and video uploads** — the admin review form uploads
+  images and (optional) videos directly to S3 (`src/lib/s3.ts`), mirroring
+  Breakroom's approach but with its own bucket (`extremepanic-uploads`,
+  us-west-2) and its own scoped IAM user — fully separate from Breakroom's
+  uploads bucket/credentials. A manually pasted URL still works as a
+  fallback for either field. Images: JPEG/PNG/GIF/WebP up to 5MB. Video:
+  MP4/WebM/MOV up to 50MB, rendered on the review page with a native
+  HTML5 `<video>` player (no YouTube/Vimeo embed support — direct video
+  files only).
 - **First real review published** — an EOHOE glucose meter, added
   2026-08-13 via `/admin`, replacing the local-only seed placeholder.
 

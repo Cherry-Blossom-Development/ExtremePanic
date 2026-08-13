@@ -7,6 +7,7 @@ type ReviewFormValues = {
   rating?: number;
   price?: number | string;
   imageUrl?: string | null;
+  videoUrl?: string | null;
   published?: boolean;
 };
 
@@ -132,6 +133,33 @@ export function ReviewForm({
           id="imageUrl"
           name="imageUrl"
           defaultValue={review?.imageUrl ?? ""}
+          className={inputClass}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="videoFile" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          Video (optional)
+        </label>
+        {review?.videoUrl && (
+          // eslint-disable-next-line jsx-a11y/media-has-caption
+          <video src={review.videoUrl} controls className="h-40 w-full max-w-xs rounded-lg" />
+        )}
+        <input
+          id="videoFile"
+          name="videoFile"
+          type="file"
+          accept="video/mp4,video/webm,video/quicktime"
+          className={`${inputClass} file:mr-4 file:rounded-full file:border-0 file:bg-zinc-100 file:px-4 file:py-2 file:text-sm file:font-medium dark:file:bg-zinc-800 dark:file:text-zinc-50`}
+        />
+        <label htmlFor="videoUrl" className="text-xs text-zinc-500 dark:text-zinc-400">
+          Or paste a video URL instead — ignored if a file is uploaded above. MP4, WebM, or
+          MOV, up to 50MB.
+        </label>
+        <input
+          id="videoUrl"
+          name="videoUrl"
+          defaultValue={review?.videoUrl ?? ""}
           className={inputClass}
         />
       </div>
