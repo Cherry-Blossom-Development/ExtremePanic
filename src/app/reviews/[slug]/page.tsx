@@ -47,7 +47,17 @@ export default async function ReviewPage({
           Buy — ${Number(review.price).toFixed(2)}
         </button>
       </form>
-      <p className="text-lg leading-8 text-zinc-600 dark:text-zinc-400">{review.body}</p>
+      <div className="flex flex-col gap-4">
+        {review.body
+          .split(/\n\s*\n/)
+          .map((paragraph) => paragraph.trim())
+          .filter(Boolean)
+          .map((paragraph, index) => (
+            <p key={index} className="text-lg leading-8 text-zinc-600 dark:text-zinc-400">
+              {paragraph}
+            </p>
+          ))}
+      </div>
     </main>
   );
 }
