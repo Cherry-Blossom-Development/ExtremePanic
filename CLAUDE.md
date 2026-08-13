@@ -29,7 +29,10 @@ npm run build
 
 `.env` is required (copy from `.env.example`): `DATABASE_URL`,
 `ADMIN_PASSWORD`, Square sandbox keys (`SQUARE_ACCESS_TOKEN`,
-`SQUARE_LOCATION_ID`, `SQUARE_ENVIRONMENT`), `SITE_URL`.
+`SQUARE_LOCATION_ID`, `SQUARE_ENVIRONMENT`), `SITE_URL`, and S3 keys
+(`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME`,
+`S3_BUCKET_REGION`) if you want image upload to work locally — everything
+else works fine without them.
 
 ## Architecture
 
@@ -54,6 +57,15 @@ npm run build
 - **Square, not Stripe** — Stripe was explicitly removed from the plan
   (vendor relationship severed). Never suggest Stripe. Square is primary,
   PayPal is the planned-but-unbuilt backup rail.
+- **Review images upload to S3** (`src/lib/s3.ts`, wired into
+  `src/app/admin/(dashboard)/reviews/actions.ts`), mirroring Breakroom's
+  approach (multer-equivalent → `PutObjectCommand` → public-read bucket)
+  but with its own bucket (`extremepanic-uploads`, us-west-2) and its own
+  scoped IAM user (`extremepanic-uploads`, access limited to that bucket's
+  objects) — **never** reuse Breakroom's `prosaurus-breakroom-uploads`
+  bucket or its credentials for anything in this repo. The admin review
+  form's file input is optional; a manually-pasted `imageUrl` still works
+  as a fallback (and is all that's used if `AWS_ACCESS_KEY_ID` isn't set).
 
 ## Conventions
 
@@ -61,7 +73,7 @@ npm run build
   `src/app/reviews/[slug]/actions.ts`, `src/app/admin/actions.ts`), not in
   a shared `actions/` directory.
 - Shared server-only helpers go in `src/lib/` (`prisma.ts`, `square.ts`,
-  `adminAuth.ts`, `stars.ts`).
+  `s3.ts`, `adminAuth.ts`, `stars.ts`).
 - Prisma is the only way this app talks to Postgres — no raw SQL, no
   second ORM.
 - Money is `Decimal` in Postgres/Prisma (`price`, `amount`); Square wants
@@ -141,6 +153,19 @@ docker logs extremepanic-web -f
 docker compose -f docker-compose.ec2.yml --env-file .env restart
 docker compose -f docker-compose.ec2.yml --env-file .env stop   # stop, keep containers/volumes
 sudo nginx -t && sudo systemctl reload nginx   # after editing the nginx conf
+```
+
+### Gotcha: package-lock.json drift breaks `npm ci` in the build
+
+`npm install` run on the dev machine's local Node (currently v24) can
+produce a `package-lock.json` with different optional-dependency entries
+(seen with `lightningcss`'s platform-specific WASM fallback) than what
+`node:20-alpine` — the Dockerfile's base image — resolves, and `npm ci`
+refuses to run against a mismatched lock file. Hit this twice already
+after `npm install`ing new packages locally. Fix before building:
+
+```bash
+docker run --rm -v "$(pwd):/app" -w /app node:20-alpine sh -c "npm install"
 ```
 
 ### Not yet configured

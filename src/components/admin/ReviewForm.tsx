@@ -107,8 +107,26 @@ export function ReviewForm({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="imageUrl" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Image URL (optional)
+        <label htmlFor="imageFile" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          Image
+        </label>
+        {review?.imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={review.imageUrl}
+            alt=""
+            className="h-32 w-32 rounded-lg object-cover"
+          />
+        )}
+        <input
+          id="imageFile"
+          name="imageFile"
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          className={`${inputClass} file:mr-4 file:rounded-full file:border-0 file:bg-zinc-100 file:px-4 file:py-2 file:text-sm file:font-medium dark:file:bg-zinc-800 dark:file:text-zinc-50`}
+        />
+        <label htmlFor="imageUrl" className="text-xs text-zinc-500 dark:text-zinc-400">
+          Or paste an image URL instead — ignored if a file is uploaded above
         </label>
         <input
           id="imageUrl"

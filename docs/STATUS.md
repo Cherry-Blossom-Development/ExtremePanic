@@ -1,6 +1,6 @@
 # ExtremePanic — Status
 
-Last updated: 2026-08-12. This is a running log of where the build actually is
+Last updated: 2026-08-13. This is a running log of where the build actually is
 relative to `docs/x-panic-plan.docx` (business plan) and
 `docs/x-panic-technical-plan-v2.docx` (technical plan, the one currently being
 followed). Update this file when a phase milestone lands or a real decision
@@ -12,11 +12,11 @@ left" without re-reading every commit.
 Mid Phase 1 (`Core Site, Payments & Fulfillment`) of the 5-phase plan. **Live
 in production** at https://extremepanic.com since 2026-08-12, deployed to the
 existing Prosaurus/Breakroom EC2 box per the plan's default recommendation
-(see `CLAUDE.md`'s "EC2 Production Deployment" section for the how-to).
-There is no real reviewed product in it yet — the Review catalog is
-intentionally empty rather than seeded with placeholder content, since this
-is now the real site. Option B (custom Next.js build) was chosen over
-Shopify, per the plan's default recommendation.
+(see `CLAUDE.md`'s "EC2 Production Deployment" section for the how-to). The
+first real review (an EOHOE glucose meter) is published — the "buy one,
+review it" model has now actually run once end-to-end, short of an actual
+sale (Square is still sandbox-only). Option B (custom Next.js build) was
+chosen over Shopify, per the plan's default recommendation.
 
 ## Built so far
 
@@ -55,6 +55,13 @@ Shopify, per the plan's default recommendation.
   mode (no real charges) since sandbox keys haven't been supplied yet —
   the Buy button 500s until `SQUARE_ACCESS_TOKEN` / `SQUARE_LOCATION_ID`
   are added to the box's `.env`.
+- **Review image uploads** — the admin review form uploads directly to S3
+  (`src/lib/s3.ts`), mirroring Breakroom's approach but with its own
+  bucket (`extremepanic-uploads`, us-west-2) and its own scoped IAM user —
+  fully separate from Breakroom's uploads bucket/credentials. A manually
+  pasted image URL still works as a fallback.
+- **First real review published** — an EOHOE glucose meter, added
+  2026-08-13 via `/admin`, replacing the local-only seed placeholder.
 
 ## Not built yet
 
@@ -72,9 +79,6 @@ Roughly in the order the plan implies:
 - **Dropship supplier integration** — plan recommends CJdropshipping
   ($0/mo) as the starting supplier (§2.3, §8). Not started; nothing
   currently routes an order to a supplier.
-- **A real first product** — the whole model depends on buying, photographing,
-  and reviewing one physical item. Hasn't happened yet; production
-  `/reviews` is currently empty.
 - **Phase 2 — Analytics**: PostHog + Microsoft Clarity + Square Dashboard
   (§3). Not started.
 - **Phase 3 — Marketing**: Klaviyo email campaigns, Meta/Google/TikTok ads
@@ -97,10 +101,11 @@ Roughly in the order the plan implies:
 
 ## Next likely steps
 
-1. Buy and review one real product; add it via `/admin` on the live site.
-2. Supply Square sandbox credentials (then later live credentials once
-   there's a real product) to the box's `.env` so checkout works.
-3. Wire the Square webhook so `Order.status` actually reflects payment —
+1. Supply Square sandbox credentials (then later live credentials) to the
+   box's `.env` so checkout works on the real review that's now live.
+2. Wire the Square webhook so `Order.status` actually reflects payment —
    no longer blocked on deployment now that the site is live over HTTPS.
-4. Pick and connect a dropship supplier (CJdropshipping per the plan) so a
+3. Pick and connect a dropship supplier (CJdropshipping per the plan) so a
    paid order actually ships.
+4. Buy and review a second product now that the whole loop (buy → review →
+   publish, with a real photo) has been proven out once.
