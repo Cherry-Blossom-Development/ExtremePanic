@@ -31,6 +31,18 @@ model Review {
   orders    Order[]
 }
 
+// A product being considered for a future purchase-and-review, before
+// it's actually been bought. Internal-only (no `published`/public route)
+// -- distinct from Review, which is always an already-purchased product.
+model ProductCandidate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  purchaseUrl String
+  price       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+}
+
 enum OrderStatus {
   PENDING
   PAID

@@ -71,6 +71,14 @@ else works fine without them.
   set). Video is capped at 50MB (JPEG/PNG/GIF/WebP images at 5MB,
   MP4/WebM/MOV video) — worth revisiting if the box's memory gets tight,
   since uploads are buffered in memory before the `PutObjectCommand`.
+- **`ProductCandidate` is internal-only, distinct from `Review`** —
+  products under consideration before they've been bought
+  (`/admin/candidates/*`, `prisma/schema.prisma`). No `published` flag, no
+  public route, no image/video/rating — just name, optional description,
+  purchase link, price, and a timestamp. Don't merge this into `Review` or
+  add a public listing for it without being asked; the two models exist
+  because "considering buying" and "bought and reviewed" are genuinely
+  different states with different visibility needs.
 
 ## Conventions
 

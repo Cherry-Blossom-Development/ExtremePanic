@@ -24,8 +24,8 @@ chosen over Shopify, per the plan's default recommendation.
   dir), per `AGENTS.md`'s note that this is a version with breaking API
   changes from older Next.js knowledge.
 - **Local database** — Postgres via `docker-compose.yml` (port 5433, to
-  avoid colliding with any other local Postgres) + Prisma ORM. Three
-  domain tables: `Subscriber`, `Review`, `Order`.
+  avoid colliding with any other local Postgres) + Prisma ORM. Four
+  domain tables: `Subscriber`, `Review`, `Order`, `ProductCandidate`.
 - **Email capture** — landing page (`src/app/page.tsx`) with a signup form
   (`src/components/SubscribeForm.tsx`) posting to `POST /api/subscribe`,
   which writes to `Subscriber`.
@@ -66,6 +66,12 @@ chosen over Shopify, per the plan's default recommendation.
   files only).
 - **First real review published** — an EOHOE glucose meter, added
   2026-08-13 via `/admin`, replacing the local-only seed placeholder.
+- **Candidates list** — a separate, internal-only admin section
+  (`/admin/candidates`, `ProductCandidate` table) for tracking products
+  worth considering before they're actually purchased: name, optional
+  description, purchase link, price, added-on timestamp. No public route,
+  no publish flag — distinct from `Review`, which only ever represents an
+  already-bought, already-photographed product.
 
 ## Not built yet
 
