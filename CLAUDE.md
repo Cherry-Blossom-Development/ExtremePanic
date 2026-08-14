@@ -79,6 +79,14 @@ else works fine without them.
   add a public listing for it without being asked; the two models exist
   because "considering buying" and "bought and reviewed" are genuinely
   different states with different visibility needs.
+- **"Promote to review"** (`/admin/candidates` → link → `/admin/reviews/new?candidateId=...`)
+  pre-fills the new-review form from a candidate's name/description/price
+  (`src/app/admin/(dashboard)/reviews/new/page.tsx` reads the search
+  param) and, on successful `createReview`, deletes the source candidate
+  (see the `candidateId` handling at the end of `createReview` in
+  `reviews/actions.ts`). The candidate is only deleted after the review
+  row is actually created — never delete it earlier in that flow, or a
+  failed/abandoned submission would silently lose the candidate.
 
 ## Conventions
 

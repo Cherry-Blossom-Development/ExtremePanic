@@ -147,6 +147,19 @@ export async function createReview(formData: FormData) {
   await requireAdmin();
   const data = await readReviewFields(formData);
   await prisma.review.create({ data });
+
+  // If this review was created via "Promote to review" from a candidate,
+  // that candidate has graduated -- it's no longer just under consideration.
+  const candidateId = String(formData.get("candidateId") ?? "");
+  if (candidateId) {
+    try {
+      await prisma.productCandidate.delete({ where: { id: candidateId } });
+      revalidatePath("/admin/candidates");
+    } catch (err) {
+      console.error("Failed to delete promoted candidate:", err);
+    }
+  }
+
   revalidateReviewPaths();
   redirect("/admin/reviews");
 }

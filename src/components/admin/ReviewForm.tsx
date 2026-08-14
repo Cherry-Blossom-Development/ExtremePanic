@@ -16,16 +16,19 @@ const inputClass =
 
 export function ReviewForm({
   review,
+  candidateId,
   action,
   submitLabel,
 }: {
   review?: ReviewFormValues;
+  candidateId?: string;
   action: (formData: FormData) => void | Promise<void>;
   submitLabel: string;
 }) {
   return (
     <form action={action} className="flex flex-col gap-5">
       {review?.id && <input type="hidden" name="id" defaultValue={review.id} />}
+      {candidateId && <input type="hidden" name="candidateId" defaultValue={candidateId} />}
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="title" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">

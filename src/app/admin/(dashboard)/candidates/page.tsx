@@ -53,6 +53,12 @@ export default async function AdminCandidatesPage() {
               </div>
               <div className="flex items-center gap-4">
                 <Link
+                  href={`/admin/reviews/new?candidateId=${candidate.id}`}
+                  className="text-sm font-medium text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
+                >
+                  Promote to review
+                </Link>
+                <Link
                   href={`/admin/candidates/${candidate.id}/edit`}
                   className="text-sm font-medium text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
                 >

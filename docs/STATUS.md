@@ -1,6 +1,6 @@
 # ExtremePanic — Status
 
-Last updated: 2026-08-13. This is a running log of where the build actually is
+Last updated: 2026-08-14. This is a running log of where the build actually is
 relative to `docs/x-panic-plan.docx` (business plan) and
 `docs/x-panic-technical-plan-v2.docx` (technical plan, the one currently being
 followed). Update this file when a phase milestone lands or a real decision
@@ -71,7 +71,9 @@ chosen over Shopify, per the plan's default recommendation.
   worth considering before they're actually purchased: name, optional
   description, purchase link, price, added-on timestamp. No public route,
   no publish flag — distinct from `Review`, which only ever represents an
-  already-bought, already-photographed product.
+  already-bought, already-photographed product. A "Promote to review"
+  link pre-fills the new-review form from a candidate and deletes the
+  candidate once the review is actually created.
 
 ## Not built yet
 
